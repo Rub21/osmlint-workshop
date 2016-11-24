@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CoffeeScript and Sass</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <!-- <script src="https://github.com/downloads/gnab/remark/remark-0.3.0.min.js" type="text/javascript"></script>-->
+    <script src="remark.min.js" type="text/javascript"></script>
+    <script src="lib/highlight-coffee.js" type="text/javascript"></script>
+    <script src="lib/jquery.js" type="text/javascript"></script>
+    <script src="lib/coffee-script.js" type="text/javascript"></script>
+    <script src="lib/eval-coffeescript.js" type="text/javascript"></script>
+
+    <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,200' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+
+    <style type="text/css" media="screen">
+      html, body { font-family: 'Minion Pro', 'Palatino Linotype', 'Palatino', 'Georgia', serif; font-size: 24px; }
+      h1, h2, h3, h4, h5, h6 { font-family: 'Yanone Kaffeesatz', sans-serif; font-weight: 400; }
+      h1 {
+        font-size: 4.5em;
+        text-shadow: 0 -1px 0 #ff1810;
+        color: #fff;
+        background-color: #FF4943;
+        padding: 20px;
+        -moz-border-radius:    15px;
+        -webkit-border-radius: 15px;
+        border-radius:         15px;
+      }
+      h2 { font-size: 2.5em; }
+
+      a { color: #41C8F0; text-decoration: none; }
+      a:hover { color: #FF4943; text-decoration: none; }
+
+      pre code {
+        -webkit-border-radius: 6px;
+        -moz-border-radius: 6px;
+        border-radius: 6px;
+        background-color: #333; color: #fff; padding: 1em 2em;
+      }
+      pre code .number, pre code.css .value, pre code.css .value .number { color: #0086F7; font-weight: bold; }
+      pre code .keyword, pre code .keymethods, pre code .tag .title { color: #FB660A; font-weight: bold; }
+      pre code.css .id, pre code .symbol { color: #FB660A; font-weight: normal; }
+      pre code .string, pre code .tag .value { color: #0091E2; }
+      pre code .function, pre code.css .class, pre code .preprocessor { color: #87A558; }
+      pre code .title { color: #DBEC62; font-weight: normal; }
+      pre code .params { color: #87A558; }
+      pre code .literal { }
+
+      p > code, li > code { padding: 1px 4px; border: 1px solid #CCC; background-color: #EEE; }
+
+      #slideshow .slide .content code { font-family: 'Inconsololata', monospace; }
+      code { position: relative; }
+      code a.run { position: absolute; top: 10px; right: 10px; }
+      code .function {color: #900;}
+
+      .position { font-size: 0.8em; }
+
+      .bekk { font-family: Georgia, serif; background-color: #000; }
+      .bekk p { color: #a09583; }
+      .bekk h1 { text-shadow: none; background-color: inherit; font-family: Georgia, serif; color: #a09583; }
+      .bekk h2 { font-family: Georgia, serif; color: #fff; }
+      .bekk a { color: #ff6967; }
+
+      .slide {}
+      .slide > .red { background-color: #FF4943; color: #F0F2EB; }
+
+      .red    { color: #FF4943; }
+      .gray   { color: #787878; }
+      .green  { color: #87A558; }
+      .blue   { color: #41C8F0; }
+      .yellow { color: #DBEC62; }
+
+      .nice p { font-size: 2.5em; font-family: 'Yanone Kaffeesatz', sans-serif; font-weight: 400; color: #787878; }
+      .nice.large p { font-size: 6em;}
+
+      .agenda ul { list-style-type: none; }
+      .agenda li { font-size: 2.5em; padding: 0.4em 0; font-family: 'Yanone Kaffeesatz', sans-serif; font-weight: 400; color: #787878;}
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+.center.middle
+
+# Osmlint workshop 
+
+by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
+
+---
+
+.agenda.middle
+
+## Clone [osmlint](https://github.com/osmlab/osmlint) repository
+
+
+    .sh
+    $ git clone https://github.com/osmlab/osmlint.git --depth=1
+    $ cd osmlint
+    $ npm install
+    $ npm link
+
+
+---
+
+## Download mbtiles
+
+  ![](img/mbtiles.png)
+
+  * [Planet mbtiles](http://osmlab.github.io/osm-qa-tiles/)
+  * [Country mbtiles](http://osmlab.github.io/osm-qa-tiles/country.html)
+
+---
+
+## Write the validator
+
+###Create a copy of template folder `validators/01_dir_template` and rename it with the name of your validator e.g  `deprecateHighways`
+
+![](img/template.png)
+
+---
+
+.nice.middle.center
+
+".blue[It's just JavaScript]"
+
+"Basic exmaples"
+
+---
+
+## Filter [tourism=hotel](http://wiki.openstreetmap.org/wiki/Tag:tourism%3Dhotel)
+
+    .node
+      module.exports = function(tileLayers, tile, writeData, done) {
+        var data = tileLayers.osm.osm;
+        var osmlint = 'tourismhotel';
+        var result = [];
+        for (var i = 0; i < data.features.length; i++) {
+          var val = data.features&shy;[i];
+          if (val.properties.tourism && val.properties.tourism=hotel) {
+            val.properties._osmlint = osmlint;
+            result.push(val);
+          }
+        }
+        if (result.length > 0) {
+          var fc = turf.featurecollection(result);
+          writeData(JSON.stringify(fc) + '\n');
+        }
+        done(null, null);
+      };
+
+---
+
+## Natural vs Leisure
+
+    .node
+    module.exports = function(tileLayers, tile, writeData, done) {
+      var layer = tileLayers.osm.osm;
+      var osmlint = 'naturalvsleisure';
+      var result = [];
+      for (var i = 0; i < layer.features.length; i++) {
+        var val = layer.features&shy;[i];
+        if (val.properties.natural && val.properties.leisure) {
+          val.properties._osmlint = osmlint;
+          result.push(val);
+        }
+      }
+      if (result.length > 0) {
+        var fc = turf.featurecollection(result);
+        writeData(JSON.stringify(fc) + '\n');
+      }
+      done(null, null);
+    };
+
+---
+
+## Buildings area > 100,000 Sq m
+
+    .node
+    module.exports = function(tileLayers, tile, writeData, done) {
+      var layer = tileLayers.osm.osm;
+      var osmlint = 'naturalvsleisure';
+      var result = [];
+      for (var i = 0; i < layer.features.length; i++) {
+        var val = layer.features&shy;[i];
+        if (val.properties.building && val.geometry.type === 'Polygon') {
+          var fc = {
+            type: 'FeatureCollection',
+            features: [val]
+          };
+          var area = turf.area(fc); 
+          if (area > 100000) {
+            result.push(val);
+          }
+        }
+      }
+      if (result.length > 0) {
+        var fc = turf.featurecollection(result);
+        writeData(JSON.stringify(fc) + '\n');
+      }
+      done(null, null);
+    };
+
+---
+
+## Name cafe on amenity=cafe
+
+    .node
+    module.exports = function(tileLayers, tile, writeData, done) {
+      var layer = tileLayers.osm.osm;
+      var osmlint = 'namecafeonamenity';
+      var result = layer.features.filter(function(val) {
+        if (val.properties.amenity == 'cafe' && val.properties.name && 
+        val.properties.name.toLowerCase().indexOf('cafe') !== -1) {
+          val.properties._osmlint = osmlint;
+          return true;
+        }
+      });
+      if (result.length > 0) {
+        var fc = turf.featurecollection(result);
+        writeData(JSON.stringify(fc) + '\n');
+      }
+      done(null, null);
+    };
+
+---
+
+
+## To run the validator use
+
+    .sh
+    osmlint <nameofyourvalidator> osm.mbtiles > output.json
+
+![](img/run.png)
+
+---
+
+## Convert your json to geojson
+
+*Install [osmlint-filter](https://github.com/Rub21/osmlint-filter)*
+
+    .sh
+    git clone https://github.com/Rub21/osmlint-filter.git
+    cd osmlint-filter
+    npm install
+    npm link
+
+*Convert to geojson*
+
+    .sh
+    osmlint-filter -g output.json > output.geojson
+
+
+Open your `output.geojson` in [geojson.io](geojson.io) or [Qgis](http://www.qgis.org/en/site/).
+
+
+---
+
+.middle.center
+
+## Thank you!! 
+
+[@mapbox](http://twitter.com/mapbox),[@rub21tk](http://twitter.com/rub21tk)
+
+[ruben@mapbox.com](ruben@mapbox.com)
+
+    </textarea>
+    <div id="slideshow"></div>
+    <script type="text/javascript">
+      var remark = this.remark;
+      $(document).ready(function() {
+        remark.events.addListener("slidein", function(slide, index) {
+          loadConsolesOn("code.coffee:contains('alert')");
+        });
+      });
+    </script>
+  </body>
+</html>
