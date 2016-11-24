@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>CoffeeScript and Sass</title>
+    <title>Osmlint workshop </title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 
     <!-- <script src="https://github.com/downloads/gnab/remark/remark-0.3.0.min.js" type="text/javascript"></script>-->
@@ -85,7 +85,19 @@
 
 # Osmlint workshop 
 
-by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
+Ruben Lopez Mendoza
+
+[ruben@mapbox.com](ruben@mapbox.com)
+
+[@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
+
+---
+
+.center.middle
+
+  ![](img/satellite-logo.png)
+
+  [https://rub21.github.io/slides-latam/#/](https://rub21.github.io/slides-latam/#/)
 
 ---
 
@@ -93,13 +105,11 @@ by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
 
 ## Clone [osmlint](https://github.com/osmlab/osmlint) repository
 
-
     .sh
     $ git clone https://github.com/osmlab/osmlint.git --depth=1
     $ cd osmlint
     $ npm install
     $ npm link
-
 
 ---
 
@@ -109,6 +119,7 @@ by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
 
   * [Planet mbtiles](http://osmlab.github.io/osm-qa-tiles/)
   * [Country mbtiles](http://osmlab.github.io/osm-qa-tiles/country.html)
+  * [Brazil](https://s3.amazonaws.com/mapbox/osm-qa-tiles/latest.country/brazil.mbtiles.gz)
 
 ---
 
@@ -124,118 +135,99 @@ by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
 
 ".blue[It's just JavaScript]"
 
-"Basic exmaples"
+"Basic examples"
 
 ---
 
-## Filter [tourism=hotel](http://wiki.openstreetmap.org/wiki/Tag:tourism%3Dhotel)
+## Filter OpenStreetMap objects 
+
+Validator name `turismHotel`
+
+We are going to filter all hotel which has [tourism=hotel](http://wiki.openstreetmap.org/wiki/Tag:tourism%3Dhotel)
+
 
     .node
-      module.exports = function(tileLayers, tile, writeData, done) {
-        var data = tileLayers.osm.osm;
-        var osmlint = 'tourismhotel';
-        var result = [];
-        for (var i = 0; i < data.features.length; i++) {
-          var val = data.features&shy;[i];
-          if (val.properties.tourism && val.properties.tourism=hotel) {
-            val.properties._osmlint = osmlint;
-            result.push(val);
-          }
-        }
-        if (result.length > 0) {
-          var fc = turf.featurecollection(result);
-          writeData(JSON.stringify(fc) + '\n');
-        }
-        done(null, null);
-      };
-
----
-
-## Natural vs Leisure
-
-    .node
-    module.exports = function(tileLayers, tile, writeData, done) {
-      var layer = tileLayers.osm.osm;
-      var osmlint = 'naturalvsleisure';
-      var result = [];
-      for (var i = 0; i < layer.features.length; i++) {
-        var val = layer.features&shy;[i];
-        if (val.properties.natural && val.properties.leisure) {
-          val.properties._osmlint = osmlint;
-          result.push(val);
-        }
-      }
-      if (result.length > 0) {
-        var fc = turf.featurecollection(result);
-        writeData(JSON.stringify(fc) + '\n');
-      }
-      done(null, null);
-    };
-
----
-
-## Buildings area > 100,000 Sq m
-
-    .node
-    module.exports = function(tileLayers, tile, writeData, done) {
-      var layer = tileLayers.osm.osm;
-      var osmlint = 'naturalvsleisure';
-      var result = [];
-      for (var i = 0; i < layer.features.length; i++) {
-        var val = layer.features&shy;[i];
-        if (val.properties.building && val.geometry.type === 'Polygon') {
-          var fc = {
-            type: 'FeatureCollection',
-            features: [val]
-          };
-          var area = turf.area(fc); 
-          if (area > 100000) {
-            result.push(val);
-          }
-        }
-      }
-      if (result.length > 0) {
-        var fc = turf.featurecollection(result);
-        writeData(JSON.stringify(fc) + '\n');
-      }
-      done(null, null);
-    };
-
----
-
-## Name cafe on amenity=cafe
-
-    .node
-    module.exports = function(tileLayers, tile, writeData, done) {
-      var layer = tileLayers.osm.osm;
-      var osmlint = 'namecafeonamenity';
-      var result = layer.features.filter(function(val) {
-        if (val.properties.amenity == 'cafe' && val.properties.name && 
-        val.properties.name.toLowerCase().indexOf('cafe') !== -1) {
-          val.properties._osmlint = osmlint;
-          return true;
-        }
-      });
-      if (result.length > 0) {
-        var fc = turf.featurecollection(result);
-        writeData(JSON.stringify(fc) + '\n');
-      }
-      done(null, null);
-    };
-
----
+    if (val.properties.tourism && val.properties.tourism === 'hotel') {
+      val.properties._osmlint = osmlint;
+      result.push(val);
+    }
 
 
-## To run the validator use
+Run the validator
 
     .sh
-    osmlint <nameofyourvalidator> osm.mbtiles > output.json
+    osmlint turismhotel osm.mbtiles > output.json
 
-![](img/run.png)
 
 ---
 
-## Convert your json to geojson
+## Filter OpenStreetMap  point objects 
+
+Validator name `amenityRestaurant`
+
+We are going to filter all restaurant which are points [amenity=restaurant](http://wiki.openstreetmap.org/wiki/Tag:amenity%3Drestaurant)
+
+    .node
+    if (val.properties.amenity && val.properties.amenity === 'restaurant'
+     && val.geometry.type === 'Point') {
+      val.properties._osmlint = osmlint;
+      result.push(val);
+    }
+
+
+Run the validator
+
+    .sh
+    osmlint amenityrestaurant osm.mbtiles > output.json
+
+
+---
+
+## Filter conflict between tags
+
+Validator name `naturalvsleisure`
+
+We are going to detect OpenStreetMap objects which has natural and leisure as tag
+
+    .node
+    if (val.properties.natural && val.properties.leisure) {
+      val.properties._osmlint = osmlint;
+      result.push(val);
+    }
+
+Run the validator
+
+    .sh
+    osmlint naturalvsleisure osm.mbtiles > output.json
+
+
+---
+
+## Detect large buildings
+
+Validator name `largeBuildings`
+
+We are going to detect large buildings which have an area > 10,000 in São Paulo 
+
+    .node
+    if (val.properties.building && val.geometry.type === 'Polygon') {
+      var fc = { type: 'FeatureCollection', features: [val] };
+      var area = turf.area(fc); 
+      if (area > 10000) {
+        result.push(val);
+      }
+    }
+
+Run the validator
+
+    .sh
+    osmlint largebuildings \
+    --bbox="[-46.944237,-23.803879,-46.296043,-23.358331]" \
+    osm.mbtiles > output.json
+
+---
+
+## Using the osmlint output files
 
 *Install [osmlint-filter](https://github.com/Rub21/osmlint-filter)*
 
@@ -245,7 +237,7 @@ by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
     npm install
     npm link
 
-*Convert to geojson*
+*Convert the output file to geojson*
 
     .sh
     osmlint-filter -g output.json > output.geojson
@@ -253,6 +245,19 @@ by [@rub21tk](http://twitter.com/rub21tk), [@mapbox](http://twitter.com/mapbox)
 
 Open your `output.geojson` in [geojson.io](geojson.io) or [Qgis](http://www.qgis.org/en/site/).
 
+---
+
+### Open your output.geojson in [geojson.io](geojson.io) 
+
+
+![](img/geojsonio.png)
+
+---
+
+### Open your output.geojson in [Qgis](http://www.qgis.org/en/site/)
+
+
+![](img/qgis.png)
 
 ---
 
